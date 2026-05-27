@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シャちゃんラブラブカード</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Meiryo", "ヒラギノ丸ゴ ProN W4", sans-serif;
+        }
+        body {
+            min-height: 100vh;
+            background-color: #fff8fa;
+            background-image: linear-gradient(#ffdde680 1px, transparent 1px),
+            linear-gradient(90deg,#ffdde680 1px, transparent 1px);
+            background-size: 24px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 10px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        /* 多处悬浮爱心元素，增加爱心数量 */
+        body::before {
+            content: "♡";
+            position: fixed;
+            top: 12%;
+            left: 7%;
+            font-size: 34px;
+            color: #ffb6c1;
+            opacity: 0.45;
+            animation: float 4s ease-in-out infinite;
+            z-index: 0;
+        }
+        body::after {
+            content: "♡";
+            position: fixed;
+            bottom: 14%;
+            right: 8%;
+            font-size: 40px;
+            color: #ff8da1;
+            opacity: 0.4;
+            animation: float 5s ease-in-out infinite reverse;
+            z-index: 0;
+        }
+        .heart-float-1 {
+            position: fixed;
+            top: 32%;
+            right: 6%;
+            font-size: 28px;
+            color: #ffc0d3;
+            opacity: 0.35;
+            animation: float 3.5s infinite alternate;
+        }
+        .heart-float-2 {
+            position: fixed;
+            bottom: 36%;
+            left: 9%;
+            font-size: 30px;
+            color: #ff9eb3;
+            opacity: 0.3;
+            animation: float 4.5s infinite alternate-reverse;
+        }
+      .heart-float-3 {
+            position: fixed;
+            bottom: 26%;
+            right: 6%;
+            font-size: 28px;
+            color: #ffc0d3;
+            opacity: 0.35;
+            animation: float 3.5s infinite alternate;
+        }
+        @keyframes float {
+            0%, 100% {transform: translateY(0px);}
+            50% {transform: translateY(-14px);}
+        }
+        /* 拍立得卡片容器，对标示例样式 */
+        .polaroid-card {
+            width: min(520px, 100%);
+            background: #ffffff;
+            padding: 20px 20px 35px;
+            box-shadow: 0 6px 18px rgba(220,190,200,0.35);
+            border-radius: 4px;
+            position: relative;
+            z-index: 1;
+        }
+        /* 顶部夹子留白效果 */
+        .polaroid-card::before {
+            content: "";
+            width: 110px;
+            height: 24px;
+            background: #f7e8ee;
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 3px;
+        }
+        .page {
+            display: none;
+            padding: 10px 5px;
+        }
+        .page.active {
+            display: block;
+            animation: popIn 0.35s ease-out;
+        }
+        @keyframes popIn {
+            from {opacity: 0; transform: scale(0.92);}
+            to {opacity: 1; transform: scale(1);}
+        }
+        .msg-block {
+            margin: 18px 0;
+            text-align: center;
+        }
+        .msg-text {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #44222c;
+        }
+        .msg-img {
+            max-width: 260px;
+            border-radius: 16px;
+            margin: 14px auto;
+            display: block;
+        }
+        button {
+            padding: 12px 28px;
+            margin: 8px 6px;
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(120deg, #ff8da1, #ff728e);
+            color: #ffffff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.24s ease;
+            box-shadow: 0 3px 10px rgba(255, 110, 145, 0.28);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 14px rgba(255, 110, 145, 0.35);
+        }
+        .option-btn {
+            width: 85%;
+            margin: 9px auto;
+            display: block;
+        }
+        /* 五月六月双日历样式 */
+        .calendar-box{
+            margin:22px auto;
+            width:98%;
+        }
+        .month-title{
+            text-align:center;
+            font-size:18px;
+            color:#c44077;
+            margin:14px 0 8px;
+            font-weight:bold;
+        }
+        .calendar-grid{
+            display:grid;
+            grid-template-columns: repeat(7,1fr);
+            gap:5px;
+            background:#fff9fb;
+            padding:10px;
+            border-radius:14px;
+            margin-bottom:16px;
+        }
+        .week-label{
+            text-align:center;
+            font-size:13px;
+            color:#ff728e;
+            padding:4px;
+        }
+        .day-cell{
+            aspect-ratio:1;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border-radius:8px;
+            cursor:pointer;
+            background:#fff;
+            transition:0.2s;
+        }
+        .day-cell.selected{
+            background:#ffb6c1;
+            color:#fff;
+        }
+        .day-cell.empty{
+            background:transparent;
+            cursor:default;
+        }
+        .day-tip {
+            margin:10px 0;
+            font-size:14px;
+            color:#d14877;
+            text-align:center;
+        }
+        .pick-result{
+            padding:10px;
+            background:#fff;
+            border-radius:12px;
+            margin-bottom:10px;
+            color:#b83c68;
+            min-height:42px;
+            text-align:center;
+        }
+        /* 最终总结卡片 */
+        .result-card {
+            background: #fff7fa;
+            padding: 30px 20px;
+            border-radius: 22px;
+            border:2px solid #ffdde6;
+            margin:15px 0;
+            position:relative;
+        }
+        .result-card::before{
+            content:"♡";
+            position:absolute;
+            top:10px;
+            left:12px;
+            color:#ffb6c1;
+            font-size:20px;
+        }
+        .result-card::after{
+            content:"♡";
+            position:absolute;
+            bottom:10px;
+            right:12px;
+            color:#ffb6c1;
+            font-size:20px;
+        }
+        .result-item{
+            margin:14px 0;
+            font-size:17px;
+            line-height:1.7;
+            color:#44222c;
+            text-align:center;
+        }
+        .result-item::before{
+            content:"♡ ";
+            color:#ff728e;
+            font-weight:bold;
+        }
+        .tip-text{
+            margin-top:20px;
+            font-size:17px;
+            color:#ff477e;
+            font-weight:bold;
+            text-align:center;
+        }
+    </style>
+</head>
+<body>
+<!--悬浮爱心装饰-->
+<div class="heart-float-1">♡</div>
+<div class="heart-float-2">♡</div>
+<div class="heart-float-3">♡</div>
+
+<div class="polaroid-card">
+    <!--页面1 初始提问-->
+    <div class="page active" id="page1">
+        <div class="msg-block">
+            <div class="msg-text">シャちゃん大好き？🥺♡</div>
+        </div>
+        <div style="text-align:center;margin-top:15px;">
+            <button onclick="clickYes()">大好きやで！🐱</button>
+            <button onclick="clickNo()">普通かな…</button>
+        </div>
+    </div>
+
+<div class="page" id="page2">
+    <div class="msg-block">
+        <div class="msg-text">えっ…なんで、🥺💦もう一回選んでね</div>
+        <img class="msg-img" src="chiikawa.png" alt="怒りカピバラ">
+    </div>
+    <div style="text-align:center;margin-top:15px;">
+        <button onclick="backPage1()">選び直す🐾</button>
+    </div>
+</div>
+    <!--页面3 心动点选择-->
+    <div class="page" id="page3">
+        <div class="msg-block">
+            <div class="msg-text">シャのどんなところちゅき？✨🐱</div>
+        </div>
+        <div style="margin-top:15px;">
+            <button class="option-btn" onclick="selectLike()">かわいいところ</button>
+            <button class="option-btn" onclick="selectLike()">かっこいいところ</button>
+            <button class="option-btn" onclick="selectLike()">頼りになるところ</button>
+            <button class="option-btn" onclick="selectLike()">だるいところ♡</button>
+        </div>
+    </div>
+
+    <!--页面4 夸奖反馈页面-->
+    <div class="page" id="page4">
+        <div class="msg-block">
+            <div class="msg-text">お前もな💓🐈</div>
+            <img class="msg-img" src="usagi.png" alt="嬉しい子猫">
+        </div>
+        <div style="text-align:center;margin-top:15px;">
+            <button onclick="nextDate()">つぎへすすむ</button>
+        </div>
+    </div>
+
+    <!--页面5 5月+6月双月多选日历-->
+   <!--页面5 修正后 2026标准日历区块，只替换这段-->
+<div class="page" id="page5">
+    <div class="msg-block">
+        <div class="msg-text">5月・6月のお出かけ可能な日を複数選んでね♡</div>
+    </div>
+    <div class="calendar-box">
+        <p class="day-tip">カレンダーをタップして日付を選択/解除</p>
+        <!--2026年5月 1号周五-->
+        <div class="month-title">5月</div>
+        <div class="calendar-grid">
+            <div class="week-label">日</div><div class="week-label">月</div><div class="week-label">火</div><div class="week-label">水</div><div class="week-label">木</div><div class="week-label">金</div><div class="week-label">土</div>
+            <div class="day-cell empty"></div>
+            <div class="day-cell empty"></div>
+            <div class="day-cell empty"></div>
+            <div class="day-cell empty"></div>
+            <div class="day-cell empty"></div>
+            <div class="day-cell" data-date="5月1日" onclick="toggleDay(this)">1</div>
+            <div class="day-cell" data-date="5月2日" onclick="toggleDay(this)">2</div>
+
+            <div class="day-cell" data-date="5月3日" onclick="toggleDay(this)">3</div>
+            <div class="day-cell" data-date="5月4日" onclick="toggleDay(this)">4</div>
+            <div class="day-cell" data-date="5月5日" onclick="toggleDay(this)">5</div>
+            <div class="day-cell" data-date="5月6日" onclick="toggleDay(this)">6</div>
+            <div class="day-cell" data-date="5月7日" onclick="toggleDay(this)">7</div>
+            <div class="day-cell" data-date="5月8日" onclick="toggleDay(this)">8</div>
+            <div class="day-cell" data-date="5月9日" onclick="toggleDay(this)">9</div>
+
+            <div class="day-cell" data-date="5月10日" onclick="toggleDay(this)">10</div>
+            <div class="day-cell" data-date="5月11日" onclick="toggleDay(this)">11</div>
+            <div class="day-cell" data-date="5月12日" onclick="toggleDay(this)">12</div>
+            <div class="day-cell" data-date="5月13日" onclick="toggleDay(this)">13</div>
+            <div class="day-cell" data-date="5月14日" onclick="toggleDay(this)">14</div>
+            <div class="day-cell" data-date="5月15日" onclick="toggleDay(this)">15</div>
+            <div class="day-cell" data-date="5月16日" onclick="toggleDay(this)">16</div>
+
+            <div class="day-cell" data-date="5月17日" onclick="toggleDay(this)">17</div>
+            <div class="day-cell" data-date="5月18日" onclick="toggleDay(this)">18</div>
+            <div class="day-cell" data-date="5月19日" onclick="toggleDay(this)">19</div>
+            <div class="day-cell" data-date="5月20日" onclick="toggleDay(this)">20</div>
+            <div class="day-cell" data-date="5月21日" onclick="toggleDay(this)">21</div>
+            <div class="day-cell" data-date="5月22日" onclick="toggleDay(this)">22</div>
+            <div class="day-cell" data-date="5月23日" onclick="toggleDay(this)">23</div>
+
+            <div class="day-cell" data-date="5月24日" onclick="toggleDay(this)">24</div>
+            <div class="day-cell" data-date="5月25日" onclick="toggleDay(this)">25</div>
+            <div class="day-cell" data-date="5月26日" onclick="toggleDay(this)">26</div>
+            <div class="day-cell" data-date="5月27日" onclick="toggleDay(this)">27</div>
+            <div class="day-cell" data-date="5月28日" onclick="toggleDay(this)">28</div>
+            <div class="day-cell" data-date="5月29日" onclick="toggleDay(this)">29</div>
+            <div class="day-cell" data-date="5月30日" onclick="toggleDay(this)">30</div>
+
+            <div class="day-cell" data-date="5月31日" onclick="toggleDay(this)">31</div>
+            <div class="day-cell empty"></div>
+            <div class="day-cell empty"></div>
+            <div class="day-cell empty"></div>
+            <div class="day-cell empty"></div>
+            <div class="day-cell empty"></div>
+            <div class="day-cell empty"></div>
+        </div>
+
+        <!--2026年6月 1号周一-->
+        <div class="month-title">6月</div>
+        <div class="calendar-grid">
+            <div class="week-label">日</div><div class="week-label">月</div><div class="week-label">火</div><div class="week-label">水</div><div class="week-label">木</div><div class="week-label">金</div><div class="week-label">土</div>
+            <div class="day-cell empty"></div>
+            <div class="day-cell" data-date="6月1日" onclick="toggleDay(this)">1</div>
+            <div class="day-cell" data-date="6月2日" onclick="toggleDay(this)">2</div>
+            <div class="day-cell" data-date="6月3日" onclick="toggleDay(this)">3</div>
+            <div class="day-cell" data-date="6月4日" onclick="toggleDay(this)">4</div>
+            <div class="day-cell" data-date="6月5日" onclick="toggleDay(this)">5</div>
+            <div class="day-cell" data-date="6月6日" onclick="toggleDay(this)">6</div>
+
+            <div class="day-cell" data-date="6月7日" onclick="toggleDay(this)">7</div>
+            <div class="day-cell" data-date="6月8日" onclick="toggleDay(this)">8</div>
+            <div class="day-cell" data-date="6月9日" onclick="toggleDay(this)">9</div>
+            <div class="day-cell" data-date="6月10日" onclick="toggleDay(this)">10</div>
+            <div class="day-cell" data-date="6月11日" onclick="toggleDay(this)">11</div>
+            <div class="day-cell" data-date="6月12日" onclick="toggleDay(this)">12</div>
+            <div class="day-cell" data-date="6月13日" onclick="toggleDay(this)">13</div>
+
+            <div class="day-cell" data-date="6月14日" onclick="toggleDay(this)">14</div>
+            <div class="day-cell" data-date="6月15日" onclick="toggleDay(this)">15</div>
+            <div class="day-cell" data-date="6月16日" onclick="toggleDay(this)">16</div>
+            <div class="day-cell" data-date="6月17日" onclick="toggleDay(this)">17</div>
+            <div class="day-cell" data-date="6月18日" onclick="toggleDay(this)">18</div>
+            <div class="day-cell" data-date="6月19日" onclick="toggleDay(this)">19</div>
+            <div class="day-cell" data-date="6月20日" onclick="toggleDay(this)">20</div>
+
+            <div class="day-cell" data-date="6月21日" onclick="toggleDay(this)">21</div>
+            <div class="day-cell" data-date="6月22日" onclick="toggleDay(this)">22</div>
+            <div class="day-cell" data-date="6月23日" onclick="toggleDay(this)">23</div>
+            <div class="day-cell" data-date="6月24日" onclick="toggleDay(this)">24</div>
+            <div class="day-cell" data-date="6月25日" onclick="toggleDay(this)">25</div>
+            <div class="day-cell" data-date="6月26日" onclick="toggleDay(this)">26</div>
+            <div class="day-cell" data-date="6月27日" onclick="toggleDay(this)">27</div>
+
+            <div class="day-cell" data-date="6月28日" onclick="toggleDay(this)">28</div>
+            <div class="day-cell" data-date="6月29日" onclick="toggleDay(this)">29</div>
+            <div class="day-cell" data-date="6月30日" onclick="toggleDay(this)">30</div>
+            <div class="day-cell empty"></div>
+            <div class="day-cell empty"></div>
+            <div class="day-cell empty"></div>
+            <div class="day-cell empty"></div>
+        </div>
+        <div class="pick-result" id="selectShow">選択済み日付：まだ選択していません</div>
+    </div>
+    <div style="text-align:center;">
+        <button onclick="openResult()">確定する🐾</button>
+    </div>
+</div>
+
+    <!--页面6 最终总结卡片，提示截图发送 -->
+    <div class="page" id="page6">
+        <div class="result-card" id="resultWrap"></div>
+        <p class="tip-text">この画面をスクリーンショットして送ってね♡</p>
+    </div>
+</div>
+
+<script>
+    let lovePoint = "";
+    let selectDateArr = [];
+
+    //页面切换公共函数
+    function switchPage(pageId) {
+        document.querySelectorAll('.page').forEach(item => item.classList.remove('active'))
+        document.getElementById(pageId).classList.add('active')
+    }
+    function clickYes() { switchPage('page3') }
+    function clickNo() { switchPage('page2') }
+    function backPage1() { switchPage('page1') }
+
+    //选择心动亮点
+    function selectLike() {
+        lovePoint = event.target.innerText;
+        event.target.style.background = "linear-gradient(120deg,#ff728e,#ff5d7c)";
+        switchPage('page4')
+    }
+    function nextDate() { switchPage('page5') }
+
+    //日历日期多选切换
+    function toggleDay(el) {
+        const dateStr = el.dataset.date;
+        if (el.classList.contains('selected')) {
+            el.classList.remove('selected');
+            selectDateArr = selectDateArr.filter(d => d !== dateStr)
+        } else {
+            el.classList.add('selected');
+            selectDateArr.push(dateStr)
+        }
+        //实时更新选中内容
+        const showDom = document.getElementById('selectShow');
+        if (selectDateArr.length === 0) {
+            showDom.innerText = "選択済み日付：まだ選択していません";
+        } else {
+            showDom.innerText = "選択済み日付：" + selectDateArr.sort().join("、");
+        }
+    }
+
+    //打开最终总结页面
+    function openResult() {
+        if (selectDateArr.length === 0) {
+            alert("お出かけ可能な日を少なくとも一日選んでください♡");
+            return
+        }
+        const htmlStr = `
+            <div class="result-item">気持ち：私のことが大好き</div>
+            <div class="result-item">惹かれた部分：${lovePoint}</div>
+            <div class="result-item">空いている日：${selectDateArr.sort().join("、")}</div>
+        `
+        document.getElementById('resultWrap').innerHTML = htmlStr;
+        switchPage('page6')
+    }
+</script>
+</body>
+</html>
